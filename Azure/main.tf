@@ -60,6 +60,34 @@ resource "azurerm_public_ip" "myterraformpublicip" {
   allocation_method   = "Dynamic"
 }
 
+resource "azurerm_public_ip" "myterraformpublicip2" {
+  name                = "myPublicIP2"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  allocation_method   = "Dynamic"
+}
+
+#Create load balancing
+resource "azurerm_lb" "lb" {
+  name                = "LoadBalancer"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  frontend_ip_configuration {
+    name                 = "PublicIPAddress"
+    public_ip_address_id = azurerm_public_ip.myterraformpublicip.id
+  }
+}
+
+resource "azurerm_lb_rule" "lb_ip" {
+  loadbalancer_id                = azurerm_lb.lb.id
+  name                           = "LBRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 3389
+  backend_port                   = 3389
+  frontend_ip_configuration_name = "PublicIPAddress"
+}
+
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "myterraformnsg" {
   name                = "myNetworkSecurityGroup"
@@ -89,7 +117,7 @@ resource "azurerm_network_interface" "myterraformnic" {
     name                          = "myNicConfiguration"
     subnet_id                     = azurerm_subnet.myterraformsubnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.myterraformpublicip.id
+    public_ip_address_id          = azurerm_public_ip.myterraformpublicip2.id
   }
 }
 
@@ -159,4 +187,48 @@ resource "azurerm_linux_virtual_machine" "myterraformvm" {
   }
 }
 
+# Create resource group for sql server
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "East Asia"
+}
 
+
+# Create sql server
+resource "azurerm_mssql_server" "example" {
+  name                         = "a06sqlserver"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  version                      = "12.0"
+  administrator_login          = "A06db"
+  administrator_login_password = "Mark199821!"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+# Create storage_account for sql database
+resource "azurerm_storage_account" "example" {
+  name                     = "a06sqldatabase"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+# Create sql database
+resource "azurerm_mssql_database" "example" {
+  name           = "acctest-db-d"
+  server_id      = azurerm_mssql_server.example.id
+  collation      = "SQL_Latin1_General_CP1_CI_AS"
+  license_type   = "LicenseIncluded"
+  max_size_gb    = 2
+  read_scale     = false
+  sku_name       = "S0"
+  zone_redundant = false
+
+  tags = {
+    foo = "bar"
+  }
+}
