@@ -1,5 +1,5 @@
 module "azure" {
-  source          = "./azure"
+  source          = "./Azure"
   subscription_id = var.subscription_id
   appId           = var.appId
   password        = var.password
