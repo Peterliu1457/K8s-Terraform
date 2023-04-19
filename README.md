@@ -11,7 +11,11 @@ multi-cluster Kubernetes setup.
 Update Terraform Version:
 
 curl -O https://releases.hashicorp.com/terraform/1.4.4/terraform_1.4.4_linux_amd64.zip
+
 unzip terraform_1.4.4_linux_amd64.zip
+
 mkdir bin 
+
 mv terraform bin/
+
 terraform version 
