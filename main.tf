@@ -10,5 +10,5 @@ module "GCP" {
   source           = "./GCP"
   region           = var.region
   project_id       = var.project_id
-  credentials_path = "/GCP/absolute-vertex-356001-d6e6c4ffa61f.json"
+  credentials_path = "/GCP/peterproject-364114-0bdeb68d3e9e.json"
 }
